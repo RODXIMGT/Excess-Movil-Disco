@@ -1,1 +1,73 @@
-{"sitio":{},"paquetes":[],"galeria":[]}
+{
+ "actualizado": "2026-11-10T04:52:26.819Z",
+ "sitio": {},
+ "paquetes": [
+  {
+   "nombre": "Básico",
+   "precio": 1500,
+   "destacado": "",
+   "items": [
+    "2 Bocinas JBL",
+    "1 Subwoofer 18\"",
+    "4 Luces LED",
+    "Stand de luces",
+    "5 horas de servicio",
+    "Música al gusto"
+   ],
+   "wa": "",
+   "activo": true
+  },
+  {
+   "nombre": "Estándar",
+   "precio": 2300,
+   "destacado": "popular",
+   "items": [
+    "4 Bocinas JBL",
+    "4 Lámparas audio-color",
+    "2 Mini cabezas móviles",
+    "Stand de luces",
+    "TV 50\"",
+    "5 horas de servicio",
+    "Música al gusto"
+   ],
+   "wa": "",
+   "activo": true
+  },
+  {
+   "nombre": "Premium",
+   "precio": 3000,
+   "destacado": "",
+   "items": [
+    "6 Bocinas JBL",
+    "4 Lámparas audio-color",
+    "2 Cristal Ball LED",
+    "2 Mini cabezas móviles",
+    "Stand de luces",
+    "TV 50\"",
+    "5 horas de servicio",
+    "Música al gusto"
+   ],
+   "wa": "",
+   "activo": true
+  },
+  {
+   "nombre": "VIP",
+   "precio": 3500,
+   "destacado": "vip",
+   "items": [
+    "6 Bocinas JBL",
+    "4 Bocinas Sub piso 15\"",
+    "8 Lámparas audio-color",
+    "2 Cristal Ball LED",
+    "4 Mini cabezas móviles",
+    "Trusas para luces",
+    "TV 50\"",
+    "5 horas de servicio",
+    "Música al gusto"
+   ],
+   "wa": "",
+   "activo": true
+  }
+ ],
+ "galeria": []
+}
