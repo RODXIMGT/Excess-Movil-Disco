@@ -396,3 +396,7 @@ body {
   .gallery-item--wide,
   .gallery-item--tall { grid-column: auto; grid-row: auto; aspect-ratio: 4/3; }
 }
+
+/* Candado de acceso al panel (discreto) */
+.admin-lock { text-decoration: none; font-size: 0.7rem; margin-left: 0.4rem; opacity: 0.12; filter: grayscale(1); transition: opacity 0.2s; }
+.admin-lock:hover, .admin-lock:focus { opacity: 0.7; }
