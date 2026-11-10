@@ -210,7 +210,7 @@ function editarCot(numero) {
   };
   CQ._nuevo = !ex;
   abrirModal(formCot());
-  pintaItems(); pintaTotales();
+  pintaItems(); pintaTotales(); pintaFoto();
 }
 function formCot() {
   const c = CQ;
@@ -226,6 +226,8 @@ function formCot() {
     <label>&nbsp;<button class="btn" data-add-line>+ Línea libre</button></label></div>
     <label class="mt">Incluye (una línea por elemento; aparece en el PDF)<textarea id="incluye" data-k="__incluye">${esc((c.incluye || []).join('\n'))}</textarea></label>
     <div class="mt" id="lineas"></div></div>
+  <div class="card mt"><h3>Foto de referencia (opcional)</h3><p class="muted" style="font-size:.9rem">Sale en el PDF. Elige una de la galería o sube una temporal (solo para esta cotización).</p>
+    <div id="fotoBox" class="mt"></div></div>
   <div class="row mt">${f('descuento', 'Descuento (Q)', 'number', 'min="0" step="0.01"')}${f('anticipoPct', 'Anticipo %', 'number')}${f('vigenciaDias', 'Vigencia (días)', 'number')}
     <label>Emitida por<select data-k="emisorId">${S.interno.emisores.map((e) => `<option value="${e.id}" ${e.id === c.emisorId ? 'selected' : ''}>${esc(e.nombre)} · ${esc(e.tel)}</option>`).join('')}</select></label></div>
   <div class="row mt"><label>Nota para el cliente (sale en el PDF)<textarea data-k="notaCliente">${esc(c.notaCliente)}</textarea></label><label>Nota interna (no sale)<textarea data-k="notaInterna">${esc(c.notaInterna)}</textarea></label></div>
@@ -240,6 +242,14 @@ function formCot() {
     <button class="btn" data-estado="cancelada">Cancelar</button>
     <button class="btn" data-pdf>Descargar PDF</button></div>
     ${CQ._nuevo ? '' : '<button class="btn btn-danger" data-del>Eliminar</button>'}</div>`;
+}
+function pintaFoto() {
+  const c = CQ, el = $('#fotoBox'); if (!el) return;
+  el.innerHTML = `${c.foto ? `<img src="${imgSrc(c.foto)}" style="width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:.6rem" alt="">` : ''}
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+   ${S.galeria.filter((g) => g.src).map((g, n) => `<img src="${imgSrc(g.src)}" data-pick="${n}" alt="" style="width:64px;height:48px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid ${c.foto === g.src ? 'var(--neon)' : 'var(--borde)'}">`).join('')}
+   <label class="btn btn-sm" style="text-transform:none;letter-spacing:0;color:#fff;font-size:.9rem">Subir temporal<input type="file" accept="image/*" id="fotoTmp" hidden></label>
+   ${c.foto ? '<button class="btn btn-sm btn-danger" data-nofoto>Quitar</button>' : ''}</div>`;
 }
 function pintaItems() {
   $('#lineas').innerHTML = (CQ.items || []).map((i, n) => `<div class="li" data-n="${n}"><input data-i="desc" value="${esc(i.desc)}" placeholder="Descripción"><input data-i="qty" type="number" min="0" step="1" value="${i.qty}"><input data-i="precio" type="number" min="0" step="0.01" value="${i.precio}"><div style="text-align:right">${Q(i.qty * i.precio)}</div><button class="btn btn-sm btn-danger" data-rm="${n}">✕</button></div>`).join('') || '<p class="muted">Sin líneas. Elige un paquete base o agrega artículos.</p>';
@@ -264,7 +274,7 @@ async function guardarCot(estado) {
   await setDoc(doc(db, 'cotizaciones', CQ.numero), data);
   const eraNueva = CQ._nuevo;
   CQ._nuevo = false;
-  if (eraNueva) { abrirModal(formCot()); pintaItems(); }
+  if (eraNueva) { abrirModal(formCot()); pintaItems(); pintaFoto(); }
   pintaTotales();
   toast('Cotización guardada');
 }
@@ -281,8 +291,9 @@ $('#modalCard').addEventListener('input', (e) => {
   if (t.dataset.k) { let v = t.value; if (['descuento', 'anticipoPct', 'vigenciaDias'].includes(t.dataset.k)) v = Number(v) || 0; setPath(CQ, t.dataset.k, v); pintaTotales(); }
   else if (t.dataset.i) { const n = +t.closest('.li').dataset.n; CQ.items[n][t.dataset.i] = t.dataset.i === 'desc' ? t.value : Number(t.value) || 0; pintaTotales(); const li = t.closest('.li'); li.children[3].textContent = Q(CQ.items[n].qty * CQ.items[n].precio); }
 });
-$('#modalCard').addEventListener('change', (e) => {
+$('#modalCard').addEventListener('change', async (e) => {
   const t = e.target;
+  if (t.id === 'fotoTmp' && t.files[0] && CQ) { try { CQ.foto = await aImagen(t.files[0], 1000, 0.72); pintaFoto(); } catch (er) { toast(er.message); } return; }
   if (t.id === 'selPaq' && t.value) {
     const p = S.paquetes.find((x) => x.id === t.value);
     CQ.paquete = p.nombre; CQ.incluye = [...(p.items || [])];
@@ -292,8 +303,11 @@ $('#modalCard').addEventListener('change', (e) => {
   if (t.id === 'selArt' && t.value) { const a = S.interno.articulos.find((x) => x.id === t.value); CQ.items.push({ desc: a.desc, qty: 1, precio: a.precio }); pintaItems(); pintaTotales(); t.value = ''; }
 });
 $('#modalCard').addEventListener('click', async (e) => {
+  const pick = e.target.closest('[data-pick]');
+  if (pick && CQ) { CQ.foto = S.galeria.filter((g) => g.src)[+pick.dataset.pick].src; pintaFoto(); return; }
   const b = e.target.closest('button'); if (!b || !CQ) return;
   if (b.dataset.close !== undefined) return cerrarModal();
+  if (b.dataset.nofoto !== undefined) { CQ.foto = ''; pintaFoto(); return; }
   if (b.dataset.addLine !== undefined) { CQ.items.push({ desc: '', qty: 1, precio: 0 }); pintaItems(); }
   if (b.dataset.rm !== undefined) { CQ.items.splice(+b.dataset.rm, 1); pintaItems(); pintaTotales(); }
   if (b.dataset.save !== undefined) await guardarCot();
@@ -328,7 +342,9 @@ function paperHTML(q) {
   const c = calc(q), em = emisor(q.emisorId), ev = q.evento || {};
   const vence = (() => { const d = new Date((q.creada || hoy()) + 'T12:00:00'); d.setDate(d.getDate() + (q.vigenciaDias || 15)); return d.toISOString().slice(0, 10); })();
   return `<style>
-  .pp{width:794px;background:#fff;color:#14141c;font-family:'Rajdhani',Arial,sans-serif;font-size:14px}
+  .pp{width:794px;min-height:1123px;display:flex;flex-direction:column;background:#fff;color:#14141c;font-family:'Rajdhani',Arial,sans-serif;font-size:14px}
+  .pp .bd{flex:1}.pp .ft{margin-top:auto}
+  .pp .ref{width:100%;height:200px;object-fit:cover;border-radius:6px;display:block;margin-top:16px}
   .pp .hd{background:#050508;color:#fff;padding:26px 34px;display:flex;justify-content:space-between;align-items:center;border-bottom:5px solid #ff0080}
   .pp .brand{font:400 38px 'Bebas Neue',Arial;letter-spacing:5px}.pp .brand b{color:#00e5ff;font-weight:400}
   .pp .no{text-align:right;font-size:13px;color:#c8cdd8}.pp .no strong{display:block;font:400 26px 'Bebas Neue',Arial;color:#fff;letter-spacing:2px}
@@ -346,11 +362,12 @@ function paperHTML(q) {
   <div class="bd">
    <div class="two"><div><h4>Cliente</h4><b>${esc(q.cliente.nombre)}</b><br>${esc(q.cliente.tel)}${q.cliente.email ? '<br>' + esc(q.cliente.email) : ''}</div>
    <div><h4>Evento</h4><b>${esc(ev.tipo || 'Evento')}</b> · ${fechaLarga(ev.fecha)}<br>${esc(ev.inicio || '')}${ev.fin ? ' a ' + esc(ev.fin) : ''}${ev.personas ? ' · ' + esc(ev.personas) + ' personas' : ''}<br>${esc(ev.lugar || '')}</div></div>
+   ${q.foto ? `<img class="ref" src="${new URL(imgSrc(q.foto), location.href).href}" alt="">` : ''}
    ${q.incluye?.length ? `<h4>${q.paquete ? 'Paquete ' + esc(q.paquete) + ' incluye' : 'Incluye'}</h4><ul class="inc">${q.incluye.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>` : ''}
    <h4>Detalle</h4><table><thead><tr><th>Descripción</th><th class="r">Cant.</th><th class="r">Precio</th><th class="r">Importe</th></tr></thead><tbody>
    ${q.items.map((i) => `<tr><td>${esc(i.desc)}</td><td class="r">${i.qty}</td><td class="r">${Q(i.precio)}</td><td class="r">${Q(i.qty * i.precio)}</td></tr>`).join('')}</tbody></table>
    <div class="tot"><div><span>Subtotal</span><span>${Q(c.sub)}</span></div>${q.descuento ? `<div><span>Descuento</span><span>− ${Q(q.descuento)}</span></div>` : ''}<div class="g"><span>TOTAL</span><span>${Q(c.total)}</span></div>
-   <div><span>Anticipo para reservar (${q.anticipoPct}%)</span><b>${Q(c.anticipo)}</b></div><div><span>Saldo el día del evento</span><span>${Q(r2(c.total - c.anticipo))}</span></div></div>
+   ${q.anticipoPct > 0 ? `<div><span>Anticipo para reservar (${q.anticipoPct}%)</span><b>${Q(c.anticipo)}</b></div><div><span>Saldo el día del evento</span><span>${Q(r2(c.total - c.anticipo))}</span></div>` : ''}</div>
    ${q.notaCliente ? `<h4>Notas</h4><div class="term">${esc(q.notaCliente)}</div>` : ''}
    <h4>Condiciones</h4><div class="term">${esc(S.interno.terminos)}</div>
   </div>
@@ -366,7 +383,7 @@ async function exportPDF(q) {
     const canvas = await html2canvas(host.firstElementChild.nextElementSibling || host, { scale: 2, backgroundColor: '#fff' });
     const { jsPDF } = window.jspdf, pdf = new jsPDF('p', 'mm', 'a4');
     const W = 210, H = 297, imgH = canvas.height * W / canvas.width;
-    if (imgH <= H * 1.08) pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, Math.min(imgH, H));
+    if (imgH <= H * 1.08) { const k = Math.min(1, H / imgH); pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (W - W * k) / 2, 0, W * k, imgH * k); }
     else {
       const pagePx = Math.floor(canvas.width * H / W);
       for (let y = 0, p = 0; y < canvas.height; y += pagePx, p++) {
