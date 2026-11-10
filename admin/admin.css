@@ -1,0 +1,65 @@
+:root{--negro:#050508;--oscuro:#0d0d14;--panel:#12121c;--borde:#242436;--neon:#00e5ff;--magenta:#ff0080;--amarillo:#ffe100;--blanco:#fff;--gris:#8b92a3;--texto:#c8cdd8;--ok:#2ee59d;--mal:#ff5470}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rajdhani',sans-serif;font-size:16px;background:var(--negro);color:var(--texto);min-height:100vh}
+[hidden]{display:none!important}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:4px;color:#fff}.logo span{color:var(--neon);margin-left:.4rem}
+.login{min-height:100vh;display:grid;place-items:center;padding:1rem}
+.login-box{background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:2rem;max-width:380px;width:100%;text-align:center;display:grid;gap:1rem}
+.err{color:var(--mal);min-height:1.2em}
+.top{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:.6rem 1.2rem;align-items:center;padding:.7rem 1rem;background:rgba(5,5,8,.95);border-bottom:1px solid var(--borde);backdrop-filter:blur(10px)}
+#tabs{display:flex;gap:.3rem;flex:1;overflow-x:auto}
+#tabs button{background:none;border:0;color:var(--texto);font:600 1rem 'Rajdhani';padding:.45rem .8rem;border-radius:6px;cursor:pointer;white-space:nowrap}
+#tabs button.on{background:rgba(0,229,255,.12);color:var(--neon)}
+.who{display:flex;gap:.6rem;align-items:center;font-size:.85rem;color:var(--gris)}
+main{max-width:1180px;margin:0 auto;padding:1.2rem 1rem 4rem}
+h2{font-family:'Bebas Neue';letter-spacing:2px;font-size:1.9rem;color:#fff;font-weight:400}
+h3{font-size:1.1rem;color:#fff;letter-spacing:.5px}
+.bar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.btn{font:700 .95rem 'Rajdhani';letter-spacing:.5px;border-radius:6px;padding:.5rem 1rem;cursor:pointer;border:1px solid var(--borde);background:var(--panel);color:#fff}
+.btn:hover{border-color:var(--neon)}
+.btn-primary{background:var(--neon);color:var(--negro);border-color:var(--neon)}
+.btn-pink{background:var(--magenta);border-color:var(--magenta)}
+.btn-ghost{background:none}
+.btn-danger{color:var(--mal)}.btn-danger:hover{border-color:var(--mal)}
+.btn-sm{padding:.25rem .6rem;font-size:.85rem}
+.card{background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:1rem}
+.grid{display:grid;gap:1rem}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.kpis{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:1.2rem}
+.kpi{background:var(--panel);border:1px solid var(--borde);border-radius:12px;padding:.9rem}
+.kpi small{color:var(--gris);text-transform:uppercase;letter-spacing:1px;font-size:.75rem}
+.kpi b{display:block;font:400 2rem 'Bebas Neue';color:var(--neon);letter-spacing:1px}
+label{display:grid;gap:.2rem;font-size:.8rem;color:var(--gris);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+input,select,textarea{font:500 1rem 'Rajdhani';background:var(--oscuro);border:1px solid var(--borde);border-radius:6px;color:#fff;padding:.5rem .6rem;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--neon)}
+textarea{resize:vertical;min-height:90px}
+.row{display:grid;gap:.7rem;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:.5rem .5rem;border-bottom:1px solid var(--borde);font-size:.95rem}
+th{color:var(--gris);font-size:.75rem;text-transform:uppercase;letter-spacing:1px}
+.tw{overflow-x:auto}
+tr.click{cursor:pointer}tr.click:hover{background:rgba(0,229,255,.05)}
+.pill{display:inline-block;padding:.1rem .6rem;border-radius:99px;font-size:.78rem;font-weight:700;letter-spacing:.5px;border:1px solid}
+.e-borrador{color:var(--gris)}.e-enviada{color:var(--amarillo)}.e-confirmada{color:var(--ok)}.e-rechazada,.e-cancelada{color:var(--mal)}
+.photos{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.photo img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:8px;background:#000}
+.photo .acts{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
+.drop{border:2px dashed var(--borde);border-radius:12px;padding:1.2rem;text-align:center;color:var(--gris);cursor:pointer}
+.drop:hover{border-color:var(--neon);color:var(--neon)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .h{color:var(--gris);font-size:.75rem;text-align:center;text-transform:uppercase}
+.cal .d{min-height:78px;background:var(--oscuro);border:1px solid var(--borde);border-radius:6px;padding:3px;font-size:.78rem;overflow:hidden}
+.cal .d.hoy{border-color:var(--neon)}.cal .d.out{opacity:.35}
+.cal .ev{display:block;width:100%;text-align:left;border:0;border-radius:4px;padding:1px 4px;margin-top:2px;font:600 .72rem 'Rajdhani';cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.c{background:rgba(46,229,157,.2);color:var(--ok)}.ev.s{background:rgba(255,225,0,.18);color:var(--amarillo)}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.75);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:1rem}
+.modal-card{background:var(--panel);border:1px solid var(--borde);border-radius:14px;width:100%;max-width:880px;padding:1.2rem;margin:auto 0}
+.li{display:grid;grid-template-columns:1fr 70px 100px 100px 34px;gap:.4rem;align-items:center;margin-bottom:.4rem}
+.totals{margin-left:auto;max-width:320px;display:grid;gap:.3rem}
+.totals div{display:flex;justify-content:space-between}
+.totals .big{font:400 1.8rem 'Bebas Neue';color:var(--neon)}
+.warn{background:rgba(255,225,0,.1);border:1px solid var(--amarillo);color:var(--amarillo);padding:.6rem;border-radius:8px;margin:.6rem 0}
+.toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:#fff;color:#000;padding:.6rem 1.1rem;border-radius:8px;font-weight:700;z-index:99}
+.muted{color:var(--gris)}.mt{margin-top:1rem}
+@media(max-width:640px){.li{grid-template-columns:1fr 1fr 1fr 34px}.li input:first-child{grid-column:1/-1}.cal .d{min-height:56px}.cal .ev{font-size:.6rem}}

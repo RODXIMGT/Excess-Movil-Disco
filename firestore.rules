@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function esAdmin() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in ['rodale27@gmail.com']; // agrega aquí a tu socio si necesita acceso
+    }
+
+    // Contenido público: cualquiera lee, solo admin escribe
+    match /paquetes/{id} { allow read: if true; allow write: if esAdmin(); }
+    match /galeria/{id}  { allow read: if true; allow write: if esAdmin(); }
+    match /config/sitio  { allow read: if true; allow write: if esAdmin(); }
+
+    // Interno: solo admin
+    match /{document=**} { allow read, write: if esAdmin(); }
+  }
+}

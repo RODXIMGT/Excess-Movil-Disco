@@ -63,7 +63,7 @@ function enviarFormulario(e) {
 🎧 *Paquete:* ${paquete || 'Por consultar'}
 💬 *Mensaje:* ${mensaje || 'Sin mensaje adicional'}`;
 
-  const url = `https://wa.me/50253091066?text=${encodeURIComponent(texto)}`;
+  const url = `https://wa.me/${window.WA_NUMBER || '50240564500'}?text=${encodeURIComponent(texto)}`;
   window.open(url, '_blank');
 }
 
@@ -78,9 +78,14 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, { threshold: 0.1 });
 
-document.querySelectorAll('.paquete, .gallery-item, .contacto-card').forEach(el => {
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(20px)';
-  el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-  observer.observe(el);
-});
+window.revealEls = function (root) {
+  (root || document).querySelectorAll('.paquete, .gallery-item, .contacto-card').forEach(el => {
+    if (el.dataset.rv) return;
+    el.dataset.rv = '1';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+};
+window.revealEls();

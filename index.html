@@ -50,10 +50,10 @@
       <div class="section-header">
         <span class="section-tag">EQUIPAMIENTO</span>
         <h2 class="section-title">Nuestros Paquetes</h2>
-        <p class="section-desc">Todos incluyen 5 horas de servicio, música al gusto del cliente"</p>
+        <p class="section-desc" id="paquetes-desc">Todos incluyen 5 horas de servicio, música al gusto del cliente</p>
       </div>
 
-      <div class="paquetes-grid">
+      <div class="paquetes-grid" id="paquetes-grid">
 
         <!-- PAQUETE BÁSICO -->
         <div class="paquete">
@@ -67,7 +67,7 @@
             <li><span class="dot"></span>5 horas de servicio</li>
             <li><span class="dot"></span>Música al gusto</li>
           </ul>
-          <a href="https://wa.me/50240564500?text=Hola!%20Me%20interesa%20el%20Paquete%20Básico%20de%20Q.1500" target="_blank" class="paquete-cta">Solicitar →</a>
+          <a href="https://wa.me/50240564500?text=Hola!%20Me%20interesa%20el%20Paquete%20Básico%20de%20Q.1,500" target="_blank" class="paquete-cta">Solicitar →</a>
         </div>
 
         <!-- PAQUETE ESTÁNDAR -->
@@ -84,7 +84,7 @@
             <li><span class="dot"></span>5 horas de servicio</li>
             <li><span class="dot"></span>Música al gusto</li>
           </ul>
-          <a href="https://wa.me/50240564500?text=Hola!%20Me%20interesa%20el%20Paquete%20Estándar%20de%20Q.2000" target="_blank" class="paquete-cta">Solicitar →</a>
+          <a href="https://wa.me/50240564500?text=Hola!%20Me%20interesa%20el%20Paquete%20Estándar%20de%20Q.2,300" target="_blank" class="paquete-cta">Solicitar →</a>
         </div>
 
         <!-- PAQUETE PREMIUM -->
@@ -101,7 +101,7 @@
             <li><span class="dot"></span>5 horas de servicio</li>
             <li><span class="dot"></span>Música al gusto</li>
           </ul>
-          <a href="https://wa.me/50240564500?text=Hola!%20Me%20interesa%20el%20Paquete%20Premium%20de%20Q.2300" target="_blank" class="paquete-cta">Solicitar →</a>
+          <a href="https://wa.me/50240564500?text=Hola!%20Me%20interesa%20el%20Paquete%20Premium%20de%20Q.3,000" target="_blank" class="paquete-cta">Solicitar →</a>
         </div>
 
         <!-- PAQUETE VIP -->
@@ -119,7 +119,7 @@
             <li><span class="dot"></span>5 horas de servicio</li>
             <li><span class="dot"></span>Música al gusto</li>
           </ul>
-          <a href="https://wa.me/50240564500?text=Hola!%20Me%20interesa%20el%20Paquete%20VIP%20de%20Q.2800" target="_blank" class="paquete-cta">Solicitar →</a>
+          <a href="https://wa.me/50240564500?text=Hola!%20Me%20interesa%20el%20Paquete%20VIP%20de%20Q.3,500" target="_blank" class="paquete-cta">Solicitar →</a>
         </div>
 
       </div>
@@ -144,7 +144,7 @@
         <h2 class="section-title">Galería</h2>
       </div>
 
-      <div class="gallery-grid">
+      <div class="gallery-grid" id="gallery-grid">
         <!-- FOTO 1 — cambia src por tu foto -->
         <div class="gallery-item">
           <img src="imagenes/foto1.jpeg" alt=" " onerror="this.parentElement.classList.add('no-img')" />
@@ -174,7 +174,7 @@
         </div>
              </div>
 
-      <p class="gallery-hint">💡 Imagenes solo con fines ilustrativos </p>
+      <p class="gallery-hint" id="gallery-hint">💡 Imagenes solo con fines ilustrativos </p>
     </div>
   </section>
 
@@ -231,7 +231,7 @@
           </div>
           <div class="form-group">
             <label>Paquete de interés</label>
-            <select id="paquete">
+            <select id="paquete" data-fallback>
               <option value="">Seleccionar...</option>
               <option>Básico — Q.1,500</option>
               <option>Estándar — Q.2,300</option>
@@ -260,5 +260,6 @@
   </footer>
 
   <script src="script.js"></script>
+  <script type="module" src="public.js"></script>
 </body>
 </html>

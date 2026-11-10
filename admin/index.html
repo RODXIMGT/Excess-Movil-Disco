@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Excess · Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div id="login" class="login" hidden>
+    <div class="login-box">
+      <div class="logo">EXCESS<span>PANEL</span></div>
+      <p>Acceso solo para administradores.</p>
+      <button class="btn btn-primary" id="btnLogin">Entrar con Google</button>
+      <p class="err" id="loginErr"></p>
+    </div>
+  </div>
+
+  <div id="app" hidden>
+    <header class="top">
+      <div class="logo">EXCESS<span>PANEL</span></div>
+      <nav id="tabs">
+        <button data-tab="resumen">Resumen</button>
+        <button data-tab="cotizaciones">Cotizaciones</button>
+        <button data-tab="paquetes">Paquetes web</button>
+        <button data-tab="galeria">Galería</button>
+        <button data-tab="ajustes">Ajustes</button>
+      </nav>
+      <div class="who"><span id="who"></span><button class="btn btn-ghost" id="btnOut">Salir</button></div>
+    </header>
+    <main id="view"></main>
+  </div>
+
+  <div id="modal" class="modal" hidden><div class="modal-card" id="modalCard"></div></div>
+  <div id="toast" class="toast" hidden></div>
+  <div id="paperHost" style="position:fixed;left:-10000px;top:0"></div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
