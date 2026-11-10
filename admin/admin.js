@@ -1,11 +1,10 @@
-import { firebaseConfig, ADMIN_EMAILS } from '../firebase-config.js';
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { ready, collection, doc, onSnapshot, setDoc, deleteDoc, writeBatch, exportAll, importAll, resetPublic, marcarPublicado, pendiente, flush } from './store.js';
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const db = {};
+const imgSrc = (u) => (String(u).startsWith('data:') || /^https?:/.test(u) ? u : '../' + u);
+const TOKEN_KEY = 'excess_token';
+const getTok = () => { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } };
+let logged = false;
 
 // ───────── utilidades ─────────
 const $ = (s, r = document) => r.querySelector(s);
@@ -58,22 +57,68 @@ function listen() {
   ];
 }
 
-// ───────── sesión ─────────
-$('#btnLogin').onclick = async () => { try { await signInWithPopup(auth, new GoogleAuthProvider()); } catch (e) { $('#loginErr').textContent = 'No se pudo iniciar sesión: ' + e.code; } };
-$('#btnOut').onclick = () => signOut(auth);
-onAuthStateChanged(auth, (u) => {
-  unsubs.forEach((f) => f()); unsubs = [];
-  if (!u) { $('#app').hidden = true; $('#login').hidden = false; return; }
-  if (!ADMIN_EMAILS.includes(u.email)) { $('#loginErr').textContent = u.email + ' no tiene acceso.'; signOut(auth); return; }
-  $('#login').hidden = true; $('#app').hidden = false; $('#who').textContent = u.email;
-  listen(); rerender();
-});
+// ───────── sesión (contraseña, validada en el servidor) ─────────
+async function entrar() {
+  const t = getTok();
+  if (t) { try { const r = await fetch('/api/login', { headers: { Authorization: 'Bearer ' + t } }); if (r.ok) return iniciar(); } catch {} }
+  $('#app').hidden = true; $('#login').hidden = false;
+}
+async function iniciar() {
+  logged = true; $('#login').hidden = true; $('#app').hidden = false;
+  const traer = !(await ready());
+  if (traer) await importarPublicado();
+  listen(); rerender(true);
+}
+async function importarPublicado() {
+  try {
+    const r = await fetch('../data/site.json', { cache: 'no-cache' }); if (!r.ok) return;
+    const j = await r.json(); const bt = writeBatch(db);
+    (j.paquetes || []).forEach((p, i) => bt.set(doc(collection(db, 'paquetes')), { ...p, orden: i }));
+    (j.galeria || []).forEach((g, i) => bt.set(doc(collection(db, 'galeria')), { ...g, orden: i }));
+    if (j.sitio && Object.keys(j.sitio).length) bt.set(doc(db, 'config', 'sitio'), j.sitio);
+    await bt.commit(); await marcarPublicado();
+  } catch {}
+}
+async function login() {
+  $('#loginErr').textContent = '';
+  try {
+    const r = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: $('#pw').value }) });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'Error');
+    localStorage.setItem(TOKEN_KEY, j.token); $('#pw').value = ''; iniciar();
+  } catch (e) { $('#loginErr').textContent = e.message; }
+}
+$('#btnLogin').onclick = login;
+$('#pw').addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+$('#btnOut').onclick = () => { try { localStorage.removeItem(TOKEN_KEY); } catch {} location.reload(); };
+
+async function publicar() {
+  const b = $('#btnPub'); b.disabled = true; b.textContent = 'Publicando…';
+  try {
+    const body = { sitio: S.sitio, paquetes: S.paquetes, galeria: S.galeria };
+    const tam = JSON.stringify(body).length;
+    if (tam > 4200000) throw new Error('Demasiadas fotos nuevas de una vez. Publica en 2 tandas (ej. 10 fotos cada una).');
+    const r = await fetch('/api/publish', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getTok() }, body: JSON.stringify(body) });
+    const j = await r.json(); if (!r.ok) throw new Error(j.error || 'Error al publicar');
+    const bt = writeBatch(db);
+    S.galeria.forEach((g) => bt.delete(doc(db, 'galeria', g.id)));
+    j.galeria.forEach((g, i) => bt.set(doc(collection(db, 'galeria')), { ...g, orden: i }));
+    await bt.commit(); await marcarPublicado();
+    toast('Publicado ✔ — se verá en el sitio en ~1 minuto');
+  } catch (e) { toast(e.message); }
+  b.disabled = false; barraPub();
+}
+function barraPub() { const b = $('#btnPub'); if (!b) return; const p = pendiente(); b.textContent = p ? 'Publicar cambios ●' : 'Publicado ✔'; b.className = 'btn ' + (p ? 'btn-pink' : 'btn-ghost'); }
+$('#btnPub').onclick = publicar;
+window.addEventListener('beforeunload', () => flush());
+entrar();
 $('#tabs').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; S.tab = b.dataset.tab; S.dirty = false; location.hash = S.tab; rerender(true); };
 S.tab = (location.hash.slice(1) || 'resumen');
 
 // ───────── render ─────────
 function rerender(force) {
-  if (!auth.currentUser) return;
+  if (!logged) return;
+  barraPub();
   if (S.dirty && !force) return;           // no pisar lo que se está editando
   $$('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === S.tab));
   const v = $('#view');
@@ -387,9 +432,9 @@ function aImagen(fileOrUrl, max = 1280, calidad = 0.78) {
   });
 }
 function vGal(v) {
-  v.innerHTML = `<div class="bar"><h2>Galería pública</h2>${S.galeria.length ? '' : '<button class="btn btn-pink" data-seedgal>Importar las 5 fotos actuales del sitio</button>'}</div>
+  v.innerHTML = `<div class="bar"><h2>Galería pública</h2>${S.galeria.length ? '' : '<button class="btn btn-pink" data-seedgal>Cargar las 5 fotos actuales del sitio</button>'}</div>
   <label class="drop" for="fileIn">＋ Toca o arrastra fotos aquí (se optimizan solas a ~1280 px)<input id="fileIn" type="file" accept="image/*" multiple hidden></label>
-  <div class="photos mt">${S.galeria.map((f, n) => `<div class="card photo" data-id="${f.id}"><img src="${f.src}" alt="">
+  <div class="photos mt">${S.galeria.map((f, n) => `<div class="card photo" data-id="${f.id}"><img src="${imgSrc(f.src)}" alt="">
     <label class="mt">Descripción<input data-f="alt" value="${esc(f.alt || '')}"></label>
     <label class="mt">Tamaño<select data-f="forma"><option value="">Normal</option><option value="wide" ${f.forma === 'wide' ? 'selected' : ''}>Ancha</option><option value="tall" ${f.forma === 'tall' ? 'selected' : ''}>Alta</option></select></label>
     <label class="mt" style="grid-auto-flow:column;justify-content:start;align-items:center;gap:.5rem"><input type="checkbox" data-f="activo" style="width:auto" ${f.activo !== false ? 'checked' : ''}> Visible</label>
@@ -405,9 +450,8 @@ function vGal(v) {
   v.onclick = async (e) => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.seedgal !== undefined) {
-      toast('Importando…'); let i = 0;
-      for (const n of ['foto1.jpeg', 'foto2.jpeg', 'foto3.jpeg', 'foto4.jpg', 'foto5.jpg']) { try { await setDoc(doc(collection(db, 'galeria')), { src: await aImagen('../imagenes/' + n), alt: '', forma: '', activo: true, orden: i++ }); } catch (er) { toast(n + ' no se pudo importar'); } }
-      return toast('Fotos importadas');
+      const bt = writeBatch(db); ['foto1.jpeg', 'foto2.jpeg', 'foto3.jpeg', 'foto4.jpg', 'foto5.jpg'].forEach((n, i) => bt.set(doc(collection(db, 'galeria')), { src: 'imagenes/' + n, alt: '', forma: '', activo: true, orden: i }));
+      await bt.commit(); return toast('Fotos actuales cargadas');
     }
     const card = b.closest('.card'); if (!card) return; const id = card.dataset.id, f = S.galeria.find((x) => x.id === id);
     if (b.dataset.save !== undefined) { const g = (k) => card.querySelector(`[data-f="${k}"]`); const { id: _omit, ...resto } = f; await setDoc(doc(db, 'galeria', id), { ...resto, alt: g('alt').value.trim(), forma: g('forma').value, activo: g('activo').checked }); S.dirty = false; toast('Foto guardada'); }
@@ -436,10 +480,15 @@ function vAjustes(v) {
     <div id="arts">${I.articulos.map((a) => `<div class="row mt" data-a="${a.id}"><label>Descripción<input data-f="desc" value="${esc(a.desc)}"></label><label>Precio<input data-f="precio" type="number" value="${a.precio}"></label></div>`).join('')}</div>
     <button class="btn btn-sm mt" data-add-art>+ Agregar artículo</button></div>
   </div>
-  <button class="btn btn-primary mt" data-save-int>Guardar ajustes de cotización</button>`;
+  <button class="btn btn-primary mt" data-save-int>Guardar ajustes de cotización</button>
+  <div class="card mt"><h3>Respaldo</h3><p class="muted">Cotizaciones, pagos y ajustes viven solo en este navegador. Descarga un respaldo de vez en cuando (y úsalo para pasarlos a otro equipo).</p>
+   <div class="bar mt" style="justify-content:flex-start"><button class="btn" data-bk-out>Descargar respaldo</button><label class="btn" style="text-transform:none;letter-spacing:0;color:#fff;font-size:.95rem">Restaurar respaldo<input type="file" accept=".json" id="bkIn" hidden></label><button class="btn btn-danger" data-reset-pub>Descartar cambios sin publicar</button></div></div>`;
   v.oninput = () => { S.dirty = true; };
+  $('#bkIn').onchange = async (e) => { const f = e.target.files[0]; if (!f) return; try { await importAll(JSON.parse(await f.text())); S.dirty = false; toast('Respaldo restaurado'); } catch { toast('Archivo inválido'); } };
   v.onclick = async (e) => {
     const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.bkOut !== undefined) { const u = URL.createObjectURL(new Blob([JSON.stringify(exportAll())], { type: 'application/json' })); const a = document.createElement('a'); a.href = u; a.download = 'respaldo-excess-' + hoy() + '.json'; a.click(); }
+    if (b.dataset.resetPub !== undefined) { if (!b.dataset.sure) { b.dataset.sure = 1; b.textContent = '¿Seguro? Se pierden los cambios no publicados'; return; } await resetPublic(); await importarPublicado(); S.dirty = false; toast('Se recargó lo publicado'); }
     if (b.dataset.saveSitio !== undefined) { await setDoc(doc(db, 'config', 'sitio'), { whatsapp: $('#sWa').value.replace(/\D/g, ''), descPaquetes: $('#sDesc').value, notaGaleria: $('#sNota').value }); S.dirty = false; toast('Sitio actualizado'); }
     if (b.dataset.addEm !== undefined) { S.interno.emisores.push({ id: 'em-' + uid(), nombre: '', cargo: '', tel: '', email: '' }); S.dirty = false; rerender(true); }
     if (b.dataset.addArt !== undefined) { S.interno.articulos.push({ id: 'a-' + uid(), desc: '', precio: 0 }); S.dirty = false; rerender(true); }

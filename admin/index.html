@@ -13,7 +13,8 @@
     <div class="login-box">
       <div class="logo">EXCESS<span>PANEL</span></div>
       <p>Acceso solo para administradores.</p>
-      <button class="btn btn-primary" id="btnLogin">Entrar con Google</button>
+      <input type="password" id="pw" placeholder="Contraseña" autocomplete="current-password" />
+      <button class="btn btn-primary" id="btnLogin">Entrar</button>
       <p class="err" id="loginErr"></p>
     </div>
   </div>
@@ -28,7 +29,7 @@
         <button data-tab="galeria">Galería</button>
         <button data-tab="ajustes">Ajustes</button>
       </nav>
-      <div class="who"><span id="who"></span><button class="btn btn-ghost" id="btnOut">Salir</button></div>
+      <div class="who"><button class="btn btn-ghost" id="btnPub">Publicado ✔</button><button class="btn btn-ghost" id="btnOut">Salir</button></div>
     </header>
     <main id="view"></main>
   </div>

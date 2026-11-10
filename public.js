@@ -1,28 +1,18 @@
-// Sitio público: lee paquetes, galería y datos de contacto desde Firestore.
-// Si Firebase no está configurado o falla, se queda el contenido estático del HTML.
-import { firebaseConfig } from './firebase-config.js';
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+// Sitio público: lee data/site.json (lo escribe el panel). Si está vacío o falla, queda el contenido estático del HTML.
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const money = (n) => 'Q.' + Number(n || 0).toLocaleString('en-US');
 
 async function init() {
-  if (!firebaseConfig.projectId || firebaseConfig.projectId.includes('PEGAR')) return;
-  const db = getFirestore(initializeApp(firebaseConfig));
-
-  const [pq, gl, st] = await Promise.all([
-    getDocs(collection(db, 'paquetes')),
-    getDocs(collection(db, 'galeria')),
-    getDoc(doc(db, 'config', 'sitio')),
-  ]);
-  const sitio = st.exists() ? st.data() : {};
+  const r = await fetch('data/site.json', { cache: 'no-cache' });
+  if (!r.ok) return;
+  const J = await r.json();
+  const sitio = J.sitio || {};
   const wa = (sitio.whatsapp || '50240564500').replace(/\D/g, '');
   window.WA_NUMBER = wa;
 
   // ── Paquetes ──
-  const paquetes = pq.docs.map((d) => ({ id: d.id, ...d.data() }))
-    .filter((p) => p.activo !== false).sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+  const paquetes = (J.paquetes || []).filter((p) => p.activo !== false);
   if (paquetes.length) {
     const grid = document.getElementById('paquetes-grid');
     grid.innerHTML = paquetes.map((p) => {
@@ -48,8 +38,7 @@ async function init() {
   if (sitio.descPaquetes) document.getElementById('paquetes-desc').textContent = sitio.descPaquetes;
 
   // ── Galería ──
-  const fotos = gl.docs.map((d) => ({ id: d.id, ...d.data() }))
-    .filter((f) => f.activo !== false && f.src).sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+  const fotos = (J.galeria || []).filter((f) => f.activo !== false && f.src);
   if (fotos.length) {
     document.getElementById('gallery-grid').innerHTML = fotos.map((f) => {
       const k = f.forma === 'wide' ? ' gallery-item--wide' : f.forma === 'tall' ? ' gallery-item--tall' : '';
